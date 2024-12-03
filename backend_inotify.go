@@ -548,6 +548,30 @@ func (w *inotify) readEvents() {
 						return
 					}
 
+					err = filepath.WalkDir(ev.Name, func(curDir string, d fs.DirEntry, err error) error {
+						if err != nil {
+							return err
+						}
+						if !d.IsDir() {
+							return nil
+						}
+
+						// Send a Create event when adding new directory from a recursive
+						// watch; this is for "mkdir -p one/two/three". Usually all those
+						// directories will be created before we can set up watchers on the
+						// subdirectories, so only "one" would be sent as a Create event and
+						// not "one/two" and "one/two/three" (inotifywait -r has the same
+						// problem).
+						if curDir != ev.Name {
+							w.sendEvent(Event{Name: curDir, Op: Create})
+						}
+
+						return w.register(curDir, watch.flags, true)
+					})
+					if !w.sendError(err) {
+						return
+					}
+
 					// This was a directory rename, so we need to update all
 					// the children.
 					//
