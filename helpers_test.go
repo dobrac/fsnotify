@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/e2b-dev/fsnotify/internal"
-	"github.com/e2b-dev/fsnotify/internal/ztest"
+	"github.com/dobrac/fsnotify/internal"
+	"github.com/dobrac/fsnotify/internal/ztest"
 )
 
 // We wait a little bit after most commands; gives the system some time to sync

@@ -34,7 +34,7 @@ package main
 import (
     "log"
 
-    "github.com/e2b-dev/fsnotify"
+    "github.com/dobrac/fsnotify"
 )
 
 func main() {

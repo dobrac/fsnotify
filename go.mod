@@ -1,4 +1,4 @@
-module github.com/e2b-dev/fsnotify
+module github.com/dobrac/fsnotify
 
 go 1.17
 

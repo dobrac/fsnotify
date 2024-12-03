@@ -1,6 +1,6 @@
 package main
 
-import "github.com/e2b-dev/fsnotify"
+import "github.com/dobrac/fsnotify"
 
 // This is the most basic example: it prints events to the terminal as we
 // receive them.

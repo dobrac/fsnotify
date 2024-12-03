@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/e2b-dev/fsnotify"
+	"github.com/dobrac/fsnotify"
 )
 
 // Watch one or more files, but instead of watching the file directly it watches

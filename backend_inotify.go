@@ -14,7 +14,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/e2b-dev/fsnotify/internal"
+	"github.com/dobrac/fsnotify/internal"
 	"golang.org/x/sys/unix"
 )
 
