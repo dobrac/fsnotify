@@ -484,10 +484,6 @@ func (w *inotify) readEvents() {
 			/// the internal state. Not much we can do about it, so just skip.
 			/// See #616.
 			if watch == nil {
-				fmt.Printf(
-					"notify: watch not found for wd %d, skipping event\n",
-					uint32(raw.Wd),
-				)
 				next()
 				continue
 			}
@@ -505,10 +501,6 @@ func (w *inotify) readEvents() {
 			}
 
 			if mask&unix.IN_IGNORED != 0 { //&& event.Op != 0
-				fmt.Printf(
-					"notify: watch in ignored %s, skipping event\n",
-					name,
-				)
 				next()
 				continue
 			}
@@ -524,10 +516,6 @@ func (w *inotify) readEvents() {
 			// the watch.
 			if mask&unix.IN_MOVE_SELF == unix.IN_MOVE_SELF {
 				if watch.recurse {
-					fmt.Printf(
-						"notify: watch skip IN_MOVE_SELF %s, skipping event\n",
-						name,
-					)
 					next() // Do nothing
 					continue
 				}
@@ -544,10 +532,6 @@ func (w *inotify) readEvents() {
 			/// will already send a delete so no need to do it twice.
 			if mask&unix.IN_DELETE_SELF != 0 {
 				if _, ok := w.watches.path[filepath.Dir(watch.path)]; ok {
-					fmt.Printf(
-						"notify: watch skip IN_DELETE_SELF %s, skipping event\n",
-						name,
-					)
 					next()
 					continue
 				}
@@ -570,26 +554,21 @@ func (w *inotify) readEvents() {
 						return
 					}
 
+					// Register a newly created dir tree
 					err = filepath.WalkDir(ev.Name, func(curDir string, d fs.DirEntry, err error) error {
 						if err != nil {
 							return err
 						}
-
-						// Send a Create event when adding new directory from a recursive
-						// watch; this is for "mkdir -p one/two/three". Usually all those
-						// directories will be created before we can set up watchers on the
-						// subdirectories, so only "one" would be sent as a Create event and
-						// not "one/two" and "one/two/three" (inotifywait -r has the same
-						// problem).
-						if curDir != ev.Name {
-							w.sendEvent(Event{Name: curDir, Op: Create})
+						if !d.IsDir() {
+							return nil
 						}
 
-						if d.IsDir() {
-							return w.register(curDir, watch.flags, true)
-						}
-
-						return nil
+						// This is for "mkdir -p one/two/three".
+						// Usually all those directories will be created before we can set up
+						// watchers on the subdirectories, so only "one" would be sent
+						// as a Create event and not "one/two" and "one/two/three"
+						// (inotifywait -r has the same problem).
+						return w.register(curDir, watch.flags, true)
 					})
 					if !w.sendError(err) {
 						return
