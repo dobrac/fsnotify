@@ -484,6 +484,10 @@ func (w *inotify) readEvents() {
 			/// the internal state. Not much we can do about it, so just skip.
 			/// See #616.
 			if watch == nil {
+				fmt.Printf(
+					"notify: watch not found for wd %d, skipping event\n",
+					uint32(raw.Wd),
+				)
 				next()
 				continue
 			}
@@ -538,6 +542,12 @@ func (w *inotify) readEvents() {
 			}
 
 			ev := w.newEvent(name, mask, raw.Cookie)
+
+			/// Send the events that are not ignored on the events channel
+			if !w.sendEvent(ev) {
+				return
+			}
+			
 			// Need to update watch path for recurse.
 			if watch.recurse {
 				isDir := mask&unix.IN_ISDIR == unix.IN_ISDIR
@@ -566,7 +576,11 @@ func (w *inotify) readEvents() {
 							w.sendEvent(Event{Name: curDir, Op: Create})
 						}
 
-						return w.register(curDir, watch.flags, true)
+						if d.IsDir() {
+							return w.register(curDir, watch.flags, true)
+						}
+
+						return nil
 					})
 					if !w.sendError(err) {
 						return
@@ -597,10 +611,6 @@ func (w *inotify) readEvents() {
 				}
 			}
 
-			/// Send the events that are not ignored on the events channel
-			if !w.sendEvent(ev) {
-				return
-			}
 			next()
 		}
 	}
